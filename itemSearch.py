@@ -1,39 +1,18 @@
-
-
-# assume a user is in the search region
-# for each intersection in the search region, we decide whether to ping on the street the person is going or not
-# how many steps look ahead? one state?
-
-# finite time horizon: steps required
-# how many intersections left in a large search region
-
-
-# should take into account directionality.
-# based on that think about how many steps look ahead
-
-
-"""
-testRoadDict = {('Custer Avenue', 'Hull Terrace'): 0.06249047401310776, ('Custer Avenue', 'Austin Street'): 0.12498094802621552, ('Custer Avenue', 'Mulford Street'): 0.06249047401310776, ('Austin Street', 'Sherman Avenue'): 1.0, ('Custer Avenue', 'Case Street'): 0.03124523700655388}
-"""
-
-
-class itemSearch:
+class HitorWait:
     def __init__(self, intersections):
         self.searchPaths = []
         self.intersections = intersections
         self.itemFoundCount = 0
-
         self.values = {}
+
         for i in self.intersections:
             print i
             lookup = {'v': False, 'r': False, 'c': 0, 'l': False}
+            # 'v' not visited, 'r' region to search, 'c' search count, 'l', lost item found
             self.values[i] = lookup
-            # self.intersections[i]['v'] = False # not visited
-            # self.intersections[i]['r'] = False # region to search
-            # self.intersections[i]['c'] = 0     # search count
-            # self.intersections[i]['l'] = False     # item found count
-        print self.intersections
-        print self.values
+
+        # print self.intersections
+        # print self.values
 
     def addSearchRegionDown(self,region):
         self.values[region]['r'] = True
@@ -49,10 +28,7 @@ class itemSearch:
             knownValues.append({})
             knownDecisions.append({})
 
-        # what should be the nodes? what are the states? intersections!
-        # need to show the intersections
         for i in self.intersections:
-            print self.values[i]['r']
             if self.values[i]['r']:
                 # what is this??
                 knownValues[0][i] = self.expDecay(self.values[i]['c'])
@@ -62,22 +38,31 @@ class itemSearch:
                 knownDecisions[0][i] = "Wait"
 
         for t in range(1, maxTime):
-            print str(t) + " steps left\n\n"
             for stateIndex in range(0,len(self.intersections)):
                 state = self.intersections[stateIndex]
-                print "state is: " + state + " and index is: " + str(stateIndex)
 
-                # base value is if stop right now
+                """
+                 need to work on what it means to be 'search region' in our scenario
+                 b/c we only make decisions when people are in the 'search region'
+                 if it is something like a road/region needs attention, how do we prioritize and mark these roads or regions?
+                """
+
+                # based value is 1 if it is marked as search region, otherwise 0.
                 if self.values[state]['r']:
                     knownValues[t][state] = self.expDecay(self.values[state]['c'])
                 else:
                     knownValues[t][state] = 0
+
+                # base decision is always hit
                 knownDecisions[t][state] = "Hit"
 
                 # see if waiting is better
                 expectedValue = 0;
 
-                # how many states look ahead? what are the possible options?
+                """
+                how many states (in current implementation, how many intersections) to look ahead?
+                what are the possible options?
+                """
                 for nextStateIndex in range(stateIndex+1,len(self.intersections)):
                     nextState = self.intersections[nextStateIndex]
                     print "next state is: " + nextState + " and index is: " + str(nextStateIndex)
