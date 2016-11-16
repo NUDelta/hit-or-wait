@@ -32,19 +32,6 @@ class RoadAPI:
         self.loadPreviousHistory()
         self.testRoadDict = {}
 
-    # need a list for search count on each street
-
-
-    #check boosting algorithm
-
-    #model refinement
-
-    # staying in the same road:
-    #
-
-    # --> check every 50 meters; keep the duplicate roads
-    # where I am at noyes street.
-
     # get one runner's lat,lng pairs from runkeeper dataset that I scraped a while ago.
     # def cleanData():
     #     f_out = open('data3.out','w')

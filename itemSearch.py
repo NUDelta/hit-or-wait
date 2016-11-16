@@ -6,7 +6,7 @@ class HitorWait:
         self.values = {}
 
         for i in self.intersections:
-            print i
+            # print i
             lookup = {'v': False, 'r': False, 'c': 0, 'l': False}
             # 'v' not visited, 'r' region to search, 'c' search count, 'l', lost item found
             self.values[i] = lookup
@@ -15,7 +15,8 @@ class HitorWait:
         # print self.values
 
     def addSearchRegionDown(self,region):
-        self.values[region]['r'] = True
+        for r in region:
+            self.values[r]['r'] = True
 
     def expDecay(self, num):
         return (1/2.0) ** num
@@ -63,51 +64,55 @@ class HitorWait:
                 how many states (in current implementation, how many intersections) to look ahead?
                 what are the possible options?
                 """
+                # need to check if it is the last state
+                # what to do if it is the last state?
                 for nextStateIndex in range(stateIndex+1,len(self.intersections)):
                     nextState = self.intersections[nextStateIndex]
-                    print "next state is: " + nextState + " and index is: " + str(nextStateIndex)
+                    # print "next state is: " + nextState + " and index is: " + str(nextStateIndex)
 
                     # print "-----printing =========" + str(next)"
-                    print "road predict Model: "
-                    print roadPredictModel[nextState]
-                    print "knownValues: "
-                    print knownValues[t-1][nextState]
+                    # print "road predict Model: "
+                    # print roadPredictModel[nextState]
+                    # print "next state: " + nextState
+                    # print "knownValues: "
+                    # print knownValues[t-1][nextState]
+                    # print str(t-1)
                     expectedValue += roadPredictModel[nextState] * knownValues[t-1][nextState]
-                    print "expected value: "
-                    print expectedValue
+                    # print "expected value: "
+                    # print expectedValue
                 if expectedValue > knownValues[t][state]:
                     # decision is to WAIT
                     knownValues[t][state] = expectedValue
                     knownDecisions[t][state] = "Wait"
         return {'values': knownValues, 'decisions': knownDecisions}
 
+    def requestSearchHitorWait(self, userIntersectionLists, decisions):
+        """
+        INPUT: current intersection
+        ALG: Hit-or-Wait Decision Theoretic Alg to compute
+             best decision (to hit or wait) as a person walks
+             through the region
+        Hyp: this is the correct decision-theoretic solution
+        """
+        maxTime = len(decisions['decisions'])
+        listLength = len(userIntersectionLists)
+        print userIntersectionLists
+        # TODO: check for off by one
+        for i in range(0,len(userIntersectionLists)):
+            print "priting " + str(i)
+            if i >= maxTime:
+                break
+            currentIntersection = userIntersectionLists[i]
+            print "current intersection: " + currentIntersection
+            # we are not handling for intersections currently not in the decision table!
+            if self.values[currentIntersection]['r'] and decisions['decisions'][maxTime - i - 1][currentIntersection] == "Hit":
+                print "priting decision: " + decisions['decisions'][maxTime - i - 1][currentIntersection]
+                self.values[currentIntersection]['c'] +=1
 
-    #TODO:
-    #call this
-
-    # def requestSearchHitorWait(self, intersection, decisions):
-    #     """
-    #     INPUT: current intersection
-    #     ALG: Hit-or-Wait Decision Theoretic Alg to compute
-    #          best decision (to hit or wait) as a person walks
-    #          through the region
-    #     Hyp: this is the correct decision-theoretic solution
-    #     """
-    #     maxTime = len(decisions['decisions'])
-
-    #     # TODO: check for off by one
-    #     for (index, n) in enumerate(path):
-    #         if index >= maxTime:
-    #             break
-
-    #         if self.G.node[n]['r'] and decisions['decisions'][maxTime - index - 1][n] == "Hit":
-    #             self.G.node[n]['c'] +=1
-
-    #             print "searching for lost item at %s" % (n,)
-    #             print ".. at index %s and decision point %s" % (index, maxTime-index)
+                print "searching for lost item at %s" % currentIntersection
+                print ".. at index %s and decision point %s" % (i, maxTime-i)
 
 
-    #             if self.G.node[n]['l']:
-    #                 self.itemFoundCount += 1
-
-    #             break
+                if self.values[currentIntersection]['l']:
+                    self.itemFoundCount += 1
+                break
