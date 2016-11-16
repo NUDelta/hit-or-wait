@@ -17,7 +17,7 @@ class latticeSearch:
             for y in range(0, w):
                 self.G.node[(x,y)]['v'] = False  # not visited
                 self.G.node[(x,y)]['r'] = False  # region to search
-                self.G.node[(x,y)]['c'] = 0      # search count 
+                self.G.node[(x,y)]['c'] = 0      # search count
                 self.G.node[(x,y)]['l'] = False
 
 ################# MODEL MOVEMENT ###########################
@@ -31,17 +31,19 @@ class latticeSearch:
         for p in range(numPaths):
             path = random.choice(list(nx.all_shortest_paths(self.G, start, end)))
             paths.append(path)
+        # print "=====path====="
+        # print path
         return paths
 
 
     def buildMovementModel(self, paths):
         """
-           Based on a set of paths, build a model of 
+           Based on a set of paths, build a model of
                Prob(nextLocation | startLocation, currentLocation)
            Returns: Dict[startLocation][currentLocation] = P(nextLcation)
-           Assumes: When no paths through s in data, assume P(s->s') = 1 / len(s') 
+           Assumes: When no paths through s in data, assume P(s->s') = 1 / len(s')
         """
-        
+
         startDict = {}
         for p in paths:
             if p[0] in startDict:
@@ -51,7 +53,7 @@ class latticeSearch:
 
 
         tallyNexts = {}
-        
+
         for startLocation in startDict:
             paths = startDict[startLocation]
 
@@ -68,16 +70,25 @@ class latticeSearch:
 
             for currLoc in tallyNexts[startLocation]:
                 numCases = reduce(lambda x,y: x+y, tallyNexts[startLocation][currLoc].values())
-                         
+
                 if numCases == 0: # no data so assume all cases equally likely
-                    for nextLoc in tallyNexts[startLocation][currLoc]:  
+                    for nextLoc in tallyNexts[startLocation][currLoc]:
                         tallyNexts[startLocation][currLoc][nextLoc] = 1.0 / len(tallyNexts[startLocation][currLoc])
                 else:
-                    for nextLoc in tallyNexts[startLocation][currLoc]:  
+                    for nextLoc in tallyNexts[startLocation][currLoc]:
                         tallyNexts[startLocation][currLoc][nextLoc] /= (numCases * 1.0)
-           
+
+        # print tallyNexts
+        # for key, value in tallyNexts.iteritems():
+        #     print key
+        #     for k,v in value.iteritems():
+        #         print k
+        #         print v
+        #         print "\n\n"
+
+
         return tallyNexts
-    
+
 ################# SEARCHING UTILS ########################
     def clearSearchProgress(self):
         for n in self.G.node:
@@ -99,7 +110,7 @@ class latticeSearch:
         sum = 0
         for i in range(num+1):
             sum += self.expDecay(i)
-        
+
         return sum
 
     def expDecay(self, num):
@@ -119,7 +130,9 @@ class latticeSearch:
     def computeWaitingDecisionTable(self, moveModelFromKnownStart, maxTime):
         knownValues = []
         knownDecisions = []
-        
+
+        # print self.G.node
+
         for t in range(0, maxTime):
             knownValues.append({})
             knownDecisions.append({})
@@ -134,7 +147,7 @@ class latticeSearch:
 
         for t in range(1, maxTime):
             for n in self.G.node:
-             
+
                 # base value is if stop right now
                 if self.G.node[n]['r']:
                     knownValues[t][n] = self.expDecay(self.G.node[n]['c'])
@@ -142,30 +155,33 @@ class latticeSearch:
                     knownValues[t][n] = 0
                 knownDecisions[t][n] = "Hit"
 
-       
+
 
                 # see if waiting is better
                 expectedValue = 0;
 
-                    
+
                 for next in self.G[n]:
-                    expectedValue += moveModelFromKnownStart[n][next] * knownValues[t-1][next] 
+                    # print "-----printing =========" + str(next)
+                    # print "known values: "
+                    # print knownValues[t-1][next]
+                    expectedValue += moveModelFromKnownStart[n][next] * knownValues[t-1][next]
                 if expectedValue > knownValues[t][n]:
                     # decision is to WAIT
                     knownValues[t][n] = expectedValue
                     knownDecisions[t][n] = "Wait"
-                                
+
         return {'values': knownValues,
                 'decisions': knownDecisions}
 
-        
+
 
 
     def requestSearchSingleOPT(self, path):
-        """ 
+        """
         ALG: omniscient of ind. paths; ping in location of current lowest count
         """
-        region = filter(lambda x: self.G.node[x]['r'], path)            
+        region = filter(lambda x: self.G.node[x]['r'], path)
         lowestCount = self.lowestCountInRegion(region)
         pingLoc = random.choice(filter(lambda x: self.G.node[x]['c'] == lowestCount, region))
         self.G.node[pingLoc]['c'] += 1
@@ -174,10 +190,10 @@ class latticeSearch:
 
     def requestSearchFirstAvailable(self, path):
         """
-        ALG: greedy first encounter 
+        ALG: greedy first encounter
              (go for first cell in search region, regardless of count)
-        Hyp: too greedy, will rack up the search count in a lot of places that don't 
-             need it. 
+        Hyp: too greedy, will rack up the search count in a lot of places that don't
+             need it.
         """
 
         for n in path:
@@ -194,7 +210,7 @@ class latticeSearch:
     def requestSearchHitorWait(self, path, decisions):
         """
         ALG: Hit-or-Wait Decision Theoretic Alg to compute
-             best decision (to hit or wait) as a person walks 
+             best decision (to hit or wait) as a person walks
              through the region
         Hyp: this is the correct decision-theoretic solution
         """
@@ -207,19 +223,18 @@ class latticeSearch:
 
             if self.G.node[n]['r'] and decisions['decisions'][maxTime - index - 1][n] == "Hit":
                 self.G.node[n]['c'] +=1
-                
-                
+
                 print "searching for lost item at %s" % (n,)
                 print ".. at index %s and decision point %s" % (index, maxTime-index)
-              
+
 
                 if self.G.node[n]['l']:
                     self.itemFoundCount += 1
-                
+
                 break
-            
-                
-                
+
+
+
 
 
     def requestSearchFirstHitLowestCount(self, path):
@@ -236,19 +251,19 @@ class latticeSearch:
                 self.G.node[n]['c'] += 1
                 if self.G.node[n]['l']:
                      self.itemFoundCount += 1
-                break 
+                break
 
-    
+
     def getLowestActiveCount(self):
         region = filter(lambda x: self.G.node[x]['r'], self.G.node)
         return self.lowestCountInRegion(region)
-        
+
     def lowestCountInRegion(self, region):
         return min(map(lambda x: self.G.node[x]['c'], region))
 
     def requestSearchFirstHitBelowMedianCount(self, path):
         """
-           ALG: node counting favor lows 
+           ALG: node counting favor lows
                 -- go for first cell with count lower than the median count
            Hyp: search for low, hit on more searches, but still good amount of walking by
                 waiting for good opportunity may not come, but not wasting searches
@@ -262,7 +277,7 @@ class latticeSearch:
                 self.G.node[n]['c'] += 1
                 if self.G.node[n]['l']:
                      self.itemFoundCount += 1
-                break 
+                break
 
     def median(self, lst):
         return np.median(np.array(lst))
@@ -295,13 +310,13 @@ class latticeSearch:
         for p in self.searchPaths:
             for loc in p:
                 counts[loc] += 1
-                
+
         for x in range(0, self.h):
             for y in range(0, self.w):
                 print counts[(x,y)],
             print '\n'
         print '\n'
-        
+
     def printSearcherPath(self, index):
         path = self.searchPaths[index]
         for x in range(0, self.h):
@@ -326,7 +341,7 @@ class latticeSearch:
                     print '-',
             print '\n'
         print '\n'
-    
+
     def printSearchProgress(self):
         for x in range(0, self.h):
             for y in range(0, self.w):

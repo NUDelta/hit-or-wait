@@ -30,6 +30,19 @@ testList9 = ['Brummel Street', 'Custer Avenue', 'Case Street', 'Sherman Avenue']
 
 testRoadDict = {}
 
+# need a list for search count on each street
+
+
+#check boosting algorithm
+
+#model refinement
+
+# staying in the same road:
+#
+
+# --> check every 50 meters; keep the duplicate roads
+# where I am at noyes street.
+
 # get one runner's lat,lng pairs from runkeeper dataset that I scraped a while ago.
 # def cleanData():
 #     f_out = open('data3.out','w')
@@ -129,27 +142,35 @@ def getNextRoadProb(roadName, intersectedRoadName):
                 continue
             cnt += 1
             nextRoadName = listItem[currentRoadIndex+1]
-            if nextRoadName in testRoadDict:
-                testRoadDict[nextRoadName] += 1
+            cases = currentRoad+"+"+nextRoadName
+            print cases
+            if cases in testRoadDict:
+                testRoadDict[cases] += 1
             else:
-                testRoadDict[nextRoadName] = 1
+                testRoadDict[cases] = 1
+
 
     # print testRoadDict
     for key, value in testRoadDict.iteritems():
     # do something with value
         testRoadDict[key] = float(value)/cnt
 
-    maxPair = max(testRoadDict.iteritems(), key=operator.itemgetter(1))
-    prob = maxPair[1]
+    # maxPair = max(testRoadDict.iteritems(), key=operator.itemgetter(1))
+    # prob = maxPair[1]
 
-    print str(prob) + " chances to turn at " + maxPair[0]
+    ####### we need to print out dictionary with probability ####
+    print "======test road dict"
+    print testRoadDict
 
-    # if the intersected Road is also in the previous history print out the probability
-    print "intersected road: " + intersectedRoadName
-    if intersectedRoadName in testRoadDict:
-        print str(testRoadDict[intersectedRoadName]) + " chances to turn at " + intersectedRoadName + "\n\n"
-    else:
-        print "intersected road is not in the previous route history. \n\n"
+
+    # print str(prob) + " chances to turn at " + str(maxPair[0])
+
+    # # if the intersected Road is also in the previous history print out the probability
+    # print "intersected road: " + intersectedRoadName
+    # if intersectedRoadName in testRoadDict:
+    #     print str(testRoadDict[intersectedRoadName]) + " chances to turn at " + intersectedRoadName + "\n\n"
+    # else:
+    #     print "intersected road is not in the previous route history. \n\n"
     # return maxPair[0], maxPair[1], prob
     # you should return testRoadDict divided by
 
@@ -233,6 +254,17 @@ def checkPossibleStreets(lat,lng):
     for k,v in directions:
         print k
         calculateNewLatLng(lat,lng,v,dist)
+
+
+def buildingModel():
+    """
+        Based on a set of paths, build a model of
+        Prob(nextLocation | startLocation, currentLocation)
+        Returns: Dict[startLocation][currentLocation] = P(nextLcation)
+        Assumes: When no paths through s in data, assume P(s->s') = 1 / len(s')
+    """
+
+
 
 def main():
     loadPreviousHistory()
