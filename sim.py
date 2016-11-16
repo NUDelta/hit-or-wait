@@ -4,6 +4,7 @@ from intersection import RoadAPI
 
 # roadapi = RoadAPI()
 # predictModelDict = None
+
 maxTime = 3
 # selected some chunks from one runkeeper's running trace and stored data traces as road sequence.
 # randomly selected some rows from the one runkeeper user's running trace
@@ -65,7 +66,8 @@ hq feedback:
     * need to refine the model
     * what happens if someone is staying in the same road?
         - yk: maybe check every 50 meters; keep the duplicate roads
-
+    * still nice to keep the abstraction of hit-or-wait
+        - why implementing for road specific scenario?
 
 yk TODO:
     1) get next road probability
@@ -79,7 +81,6 @@ yk TODO:
     4) can we improve value of search so that it is more than # of search counts?
     5) should take into account directionality based on that think about how many steps look ahead
         - maybe this point can be resolved when 1) is resolved.
-    6)
 
     ##################################################################
 

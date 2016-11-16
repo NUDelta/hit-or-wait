@@ -96,17 +96,17 @@ class HitorWait:
         """
         maxTime = len(decisions['decisions'])
         listLength = len(userIntersectionLists)
-        print userIntersectionLists
+        # print userIntersectionLists
         # TODO: check for off by one
         for i in range(0,len(userIntersectionLists)):
-            print "priting " + str(i)
+            # print "priting " + str(i)
             if i >= maxTime:
                 break
             currentIntersection = userIntersectionLists[i]
-            print "current intersection: " + currentIntersection
+            # print "current intersection: " + currentIntersection
             # we are not handling for intersections currently not in the decision table!
             if self.values[currentIntersection]['r'] and decisions['decisions'][maxTime - i - 1][currentIntersection] == "Hit":
-                print "priting decision: " + decisions['decisions'][maxTime - i - 1][currentIntersection]
+                # print "priting decision: " + decisions['decisions'][maxTime - i - 1][currentIntersection]
                 self.values[currentIntersection]['c'] +=1
 
                 print "searching for lost item at %s" % currentIntersection
