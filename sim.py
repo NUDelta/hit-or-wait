@@ -2,27 +2,27 @@ from itemSearch import HitorWait
 from intersection import RoadAPI
 
 
-# roadapi = RoadAPI()
-# predictModelDict = None
+roadapi = RoadAPI()
+predictModelDict = None
 
 maxTime = 3
 # selected some chunks from one runkeeper's running trace and stored data traces as road sequence.
 # randomly selected some rows from the one runkeeper user's running trace
 
-# latlngPairs = open('testData.out','r').readlines()
-# for i in latlngPairs:
-#     tmp = i.split(",")
-#     currentLat, currentLng = tmp[0].strip(), tmp[1].split("\r")[0].strip()
+latlngPairs = open('testData.out','r').readlines()
+for i in latlngPairs:
+    tmp = i.split(",")
+    currentLat, currentLng = tmp[0].strip(), tmp[1].split("\r")[0].strip()
 
-#     if roadapi.getRoadIntersection(currentLat,currentLng) != None:
-#         currentRoad, intersectionName = roadapi.getRoadIntersection(currentLat,currentLng)
-#         predictModelDict = roadapi.getNextRoadProb(currentRoad, intersectionName)
+    if roadapi.getRoadIntersection(currentLat,currentLng) != None:
+        currentRoad, intersectionName = roadapi.getRoadIntersection(currentLat,currentLng)
+        predictModelDict = roadapi.getNextRoadProb(currentRoad, intersectionName)
 
 # choosing three intersections as state
 intersectionList = ['Custer Avenue+Hull Terrace', 'Custer Avenue+Austin Street', 'Custer Avenue+Mulford Street']
 hitorwait = HitorWait(intersectionList)
 
-predictModelDict = {u'Custer Avenue+Hull Terrace': 0.3, u'Austin Street+Sherman Avenue': 1.0, u'Custer Avenue+Mulford Street': 0.2, u'Custer Avenue+Austin Street': 0.3, u'Custer Avenue+Case Street': 0.03124523700655388}
+# predictModelDict = {u'Custer Avenue+Hull Terrace': 0.3, u'Austin Street+Sherman Avenue': 1.0, u'Custer Avenue+Mulford Street': 0.2, u'Custer Avenue+Austin Street': 0.3, u'Custer Avenue+Case Street': 0.03124523700655388}
 
 # for k,v in predictModelDict.iteritems():
 #     print k,v
@@ -61,6 +61,8 @@ print newDecisions
 
 """
 hq feedback:
+
+    July, 2016
     * need a list for search count on each street
     * check boosting algorithm
     * need to refine the model
@@ -68,6 +70,13 @@ hq feedback:
         - yk: maybe check every 50 meters; keep the duplicate roads
     * still nice to keep the abstraction of hit-or-wait
         - why implementing for road specific scenario?
+
+    Nov 16, 2016
+    * essentially what we need is to decide go straight, left, or right at next intersection
+    * in each road segment, value representation can be a distribution
+    * what is the right model for the value of searches
+        - taking into account who might potentially show up in the future
+        - need more reference for V* - V(-i)*
 
 yk TODO:
     1) get next road probability
