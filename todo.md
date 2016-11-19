@@ -17,11 +17,11 @@
 
 #hq feedback
 ## Nov 16, 2016
-* essentially what we need is to decide go straight, left, or right at next intersection
-* in each road segment, value representation can be a distribution
-* what is the right model for the value of searches
-    * taking into account who might potentially show up in the future
-    * need more reference for V* - V(-i)*
+> 1. essentially what we need is to decide go straight, left, or right at next intersection
+> 2. in each road segment, value representation can be a distribution
+> 3. what is the right model for the value of searches
+>   * taking into account who might potentially show up in the future
+>   * need more reference for V* - V(-i)*
 
 ## July, 2016
 * need a list for search count on each street
