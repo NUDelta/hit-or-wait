@@ -1,0 +1,4 @@
+.idea/*
+.vscode/*
+lattice.pyc
+__pycache__/*
