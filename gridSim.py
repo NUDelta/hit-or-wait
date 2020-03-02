@@ -55,7 +55,7 @@ moveModel = ex.buildMovementModel(pathsForModel)
 
 ## TODO: this number needs to be set right for the person to know to stop at the end --- maybe this is a thing about the model... that we need the transition model to end at the end or for the world to be defined a little bigger (or to some terminal state).
 
-maxTime = 12
+maxTime = 20
 decisions = {}
 for (user, path) in ex.searchPaths:
     decisions[user] = ex.computeWaitingDecisionTable(moveModel[(0,0)], user, maxTime)
