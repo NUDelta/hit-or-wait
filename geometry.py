@@ -10,7 +10,6 @@ print(poly.distance(Point(0, 3)))
 with open("buildings.json") as data:
     buildingsJson = json.load(data)
 
-
 def createPolygonObjectFromBuilding(building):
     result = {}
     result["name"] = building["name"]
