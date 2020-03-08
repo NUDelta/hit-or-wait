@@ -35,7 +35,7 @@ def findEquationOfPerpendicarLine(vertex1, vertex2):
     a1, a2 = vertex1
     b1, b2 = vertex2
     mid = midpoint(a1, a2, b1, b2)
-    
+
     slope = findSlopeOfPerpendicularLine(a1, a2, b1, b2)
 
     # account for vertical lines!!
@@ -118,26 +118,27 @@ def findOuterPolygon(innerPoly, listOfTriangles, listOfCircumcenters, plt):
     count = 0
     for i in range(0, len(innerPoly)):
         plt.text(innerPoly[i][0], innerPoly[i][1], i)
+
         matchingTrianglesIndices = findMatchingTrianglesIndices(innerPoly[i], listOfTriangles)
         matchingSegments = convertTrianglesToLinesWithSmallerAngle(matchingTrianglesIndices, listOfTriangles, innerPoly[i])
         #append edge of hole to know where to start
         edge = [innerPoly[i], innerPoly[(i-1)%len(innerPoly)]]
         #sort all segments by angle
         matchingSegments.sort(key = lambda x: findAngle(x[0][0], x[0][1]))
-        print(edge)
-        print(matchingSegments)
-        print(list(map(lambda x: listOfTriangles[x[1]], matchingSegments)))
+        # print(edge)
+        # print(matchingSegments)
+        # print(list(map(lambda x: listOfTriangles[x[1]], matchingSegments)))
         #find what the starting index (and offset) should be
         offset = 0
         for num in range(0, len(matchingSegments)):
-            print(num)
-            print("here")
-            print(matchingSegments[num][0])
-            print(edge)
-            print(matchingSegments[num][0][0] == edge[0] and matchingSegments[num][0][1] == edge[1] )
+            # print(num)
+            # print("here")
+            # print(matchingSegments[num][0])
+            # print(edge)
+            # print(matchingSegments[num][0][0] == edge[0] and matchingSegments[num][0][1] == edge[1] )
             if matchingSegments[num][0][0] == edge[0] and matchingSegments[num][0][1] == edge[1] :
                 offset = num
-        print(offset)
+        # print(offset)
         for j in range(0, len(matchingSegments)):
             indexInCircumcenters = matchingSegments[(j+offset)%len(matchingSegments)][1]
             cc = listOfCircumcenters[indexInCircumcenters]
@@ -148,7 +149,7 @@ def findOuterPolygon(innerPoly, listOfTriangles, listOfCircumcenters, plt):
             # plt.text(pt[0], pt[1], count)
             count += 1
 
-        # circumcentersInOuterPoly.pop()
+        circumcentersInOuterPoly.pop()
     # outerPoly = []
     # for i in range(0, len(circumcentersInOuterPoly)):
     #     v1 = circumcentersInOuterPoly[i]
@@ -186,28 +187,35 @@ def createInterpolatedLine(line, space):
 
 hole1 = [[-5, -5], [-4, -5], [-4, -4], [-5, -4]]
 hole2 = [[3, 3.5], [4, 3], [4.5, 4], [3.5, 4.5]]
+hole3 = [[0, 0], [1, 0], [1, 1], [0.5, 1.5], [0, 1]]
 bounds = [[-10, -10],  [-10, 10], [10, 10], [10, -10]]
 
 hole1 = createInterpolatedLine(hole1, 5)
 hole2 = createInterpolatedLine(hole2, 5)
+hole3 = createInterpolatedLine(hole3, 5)
 bounds = createInterpolatedLine(bounds, 10)
 
 hole1Centroid = Polygon(hole1).centroid
 hole2Centroid = Polygon(hole2).centroid
-seg = createSegments(0, len(hole1), len(hole1) + len(hole2), len(hole1) + len(hole2) + len(bounds))
-vertices = np.concatenate((hole1, hole2, bounds)).tolist()
+hole3Centroid = Polygon(hole3).centroid
+seg = createSegments(0, len(hole1), len(hole1) + len(hole2), len(hole1) + len(hole2) + len(hole3), len(hole1) + len(hole2) + len(hole3)+ len(bounds))
+vertices = np.concatenate((hole1, hole2, hole3, bounds)).tolist()
+
+print(hole3Centroid)
 
 result = tr.triangulate(dict(
     vertices=vertices,
     segments=seg,
-    holes=[[hole1Centroid.x, hole1Centroid.y], [hole2Centroid.x, hole2Centroid.y]]
+    holes=[[hole1Centroid.x, hole1Centroid.y], [hole2Centroid.x, hole2Centroid.y], [hole3Centroid.x, hole3Centroid.y]]
 ), "p")
 
 tr.compare(plt, {"vertices": np.array(bounds)}, result)
 listOfTriangles = []
 listOfCircumcenters = []
+print(result["triangles"].tolist())
 for triangle in result["triangles"].tolist():
     a, b, c = triangle
+    print(c)
     x, y = circumcenter(vertices[a], vertices[b], vertices[c])
     listOfTriangles.append([vertices[a], vertices[b], vertices[c]])
     listOfCircumcenters.append([x, y])
@@ -220,6 +228,10 @@ plt.gca().add_patch(poly1)
 outerPoly2 = findOuterPolygon(hole2, listOfTriangles, listOfCircumcenters, plt)
 poly2 = patches.Polygon(np.array(outerPoly2), color="yellow")
 plt.gca().add_patch(poly2)
+
+outerPoly3 = findOuterPolygon(hole3, listOfTriangles, listOfCircumcenters, plt)
+poly3 = patches.Polygon(np.array(outerPoly3), color="red")
+plt.gca().add_patch(poly3)
 
 plt.show()
 

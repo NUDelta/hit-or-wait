@@ -7,10 +7,11 @@ import collections
 from functools import reduce
 import random
 
+
 class users:
     def __init__(self):
         self.G = nx.Graph()
-    
+
     def addUser(self, name):
         self.G.add_node(name)
 
@@ -30,23 +31,23 @@ class latticeSearch:
     def __init__(self, h, w):
         self.h = h
         self.w = w
-        self.G=nx.grid_2d_graph(h, w)
+        self.G = nx.grid_2d_graph(h, w)
         self.searchPaths = []
         self.itemFoundCount = 0
         self.users = users()
 
         for x in range(0, h):
             for y in range(0, w):
-                self.G.nodes[(x,y)]['v'] = False  # not visited
-                self.G.nodes[(x,y)]['r'] = False  # region to search
-                self.G.nodes[(x,y)]['c'] = 0      # search value
+                self.G.nodes[(x, y)]['v'] = False  # not visited
+                self.G.nodes[(x, y)]['r'] = False  # region to search
+                self.G.nodes[(x, y)]['c'] = 0  # search value
                 self.G.nodes[(x, y)]['user'] = None
 
-################# MODEL MOVEMENT ###########################
+    ################# MODEL MOVEMENT ###########################
     def addSearcherPath(self, user, inputPath):
         self.searchPaths.append((user, inputPath))
         return inputPath
-        
+
     def addSearcherPathsRandom(self, numPaths, users, start, end):
         for i in range(numPaths):
             path = random.choice(list(nx.all_shortest_paths(self.G, start, end)))
@@ -60,15 +61,14 @@ class latticeSearch:
             paths.append(path)
         return paths
 
-
     def buildMovementModel(self, paths):
         """
-           Based on a set of paths, build a model of 
+           Based on a set of paths, build a model of
                Prob(nextLocation | startLocation, currentLocation)
            Returns: Dict[startLocation][currentLocation] = P(nextLcation)
-           Assumes: When no paths through s in data, assume P(s->s') = 1 / len(s') 
+           Assumes: When no paths through s in data, assume P(s->s') = 1 / len(s')
         """
-        
+
         startDict = {}
         for p in paths:
             if p[0] in startDict:
@@ -77,7 +77,7 @@ class latticeSearch:
                 startDict[p[0]] = [p]
 
         tallyNexts = {}
-        
+
         for startLocation in startDict:
             paths = startDict[startLocation]
 
@@ -89,27 +89,26 @@ class latticeSearch:
 
             for p in paths:
                 for i in range(len(p) - 1):
-                    tallyNexts[startLocation][p[i]][p[i+1]] += 1
-
+                    tallyNexts[startLocation][p[i]][p[i + 1]] += 1
 
             for currLoc in tallyNexts[startLocation]:
-                numCases = reduce(lambda x,y: x+y, tallyNexts[startLocation][currLoc].values())
-                         
-                if numCases == 0: # no data so assume all cases equally likely
-                    for nextLoc in tallyNexts[startLocation][currLoc]:  
+                numCases = reduce(lambda x, y: x + y, tallyNexts[startLocation][currLoc].values())
+
+                if numCases == 0:  # no data so assume all cases equally likely
+                    for nextLoc in tallyNexts[startLocation][currLoc]:
                         tallyNexts[startLocation][currLoc][nextLoc] = 1.0 / len(tallyNexts[startLocation][currLoc])
                 else:
-                    for nextLoc in tallyNexts[startLocation][currLoc]:  
+                    for nextLoc in tallyNexts[startLocation][currLoc]:
                         tallyNexts[startLocation][currLoc][nextLoc] /= (numCases * 1.0)
-           
+
         return tallyNexts
-    
-################# SEARCHING UTILS ########################
+
+    ################# SEARCHING UTILS ########################
     def clearSearchProgress(self):
         for n in self.G.nodes:
             self.G.nodes[n]['c'] = 0
         self.itemFoundCount = 0
-    
+
     def clearDeliveryRegions(self):
         for n in self.G.nodes:
             self.G.nodes[n]['user'] = None
@@ -117,7 +116,7 @@ class latticeSearch:
             self.G.nodes[n]['c'] = 0
 
     def getTotalSearchCount(self):
-        return reduce(lambda x,y: x+y, map(lambda x: self.G.nodes[x]['c'] > 0, self.G.nodes))
+        return reduce(lambda x, y: x + y, map(lambda x: self.G.nodes[x]['c'] > 0, self.G.nodes))
 
     def computeSearchValue(self, weighCounts):
 
@@ -131,29 +130,26 @@ class latticeSearch:
 
     def expDecaySum(self, num):
         sum = 0
-        for i in range(num+1):
+        for i in range(num + 1):
             sum += self.expDecay(i)
-        
+
         return sum
 
     def expDecay(self, num):
-        return (1/2.0) ** num
+        return (1 / 2.0) ** num
 
+    ################# SEARCH STRATEGIES ########################
 
-
-################# SEARCH STRATEGIES ########################
-
-### awesome-sauce. this is a huge accomplishment
-### next up: get the system to simulate decisions using this alg
-### ponder: do we need to re-generate this table each time, because the counts will keep changing? i suppose you could also batch it... like keep this table until 5+ people have come or something
-### TODO: need this strategy to be based on current state of the world. So wouldn't it need to take as input the value function?
-### TODO: include start location so P(next | current, start) instead of just P(next | current) to account for directionality, etc...
-
+    ### awesome-sauce. this is a huge accomplishment
+    ### next up: get the system to simulate decisions using this alg
+    ### ponder: do we need to re-generate this table each time, because the counts will keep changing? i suppose you could also batch it... like keep this table until 5+ people have come or something
+    ### TODO: need this strategy to be based on current state of the world. So wouldn't it need to take as input the value function?
+    ### TODO: include start location so P(next | current, start) instead of just P(next | current) to account for directionality, etc...
 
     def computeWaitingDecisionTable(self, moveModelFromKnownStart, helper, maxTime):
         knownValues = []
         knownDecisions = []
-        
+
         # base case
         for t in range(0, maxTime):
             knownValues.append({})
@@ -169,7 +165,7 @@ class latticeSearch:
                 knownValues[0][n] = 0
                 knownDecisions[0][n] = "Wait"
 
-        # 
+        #
         for t in range(1, maxTime):
             for n in self.G.nodes:
                 requester = self.G.nodes[n]['user']
@@ -186,7 +182,7 @@ class latticeSearch:
                 expectedValue = 0
 
                 for next in self.G[n]:
-                    expectedValue += moveModelFromKnownStart[n][next] * knownValues[t-1][next] 
+                    expectedValue += moveModelFromKnownStart[n][next] * knownValues[t - 1][next]
 
                 if expectedValue > knownValues[t][n]:
                     # decision is to WAIT
@@ -196,24 +192,22 @@ class latticeSearch:
         return {'values': knownValues,
                 'decisions': knownDecisions}
 
-        
     def getRelationshipAndSystemScore(self, helper, requester):
-        return 0.1 + 0.9*self.users.getSocialScore(requester, helper)
-
+        return 0.1 + 0.9 * self.users.getSocialScore(requester, helper)
 
     def requestSearchSingleOPT(self, path):
-        """ 
+        """
         ALG: omniscient of ind. paths; ping in location of current lowest count
         """
-        region = filter(lambda x: self.G.nodes[x]['r'] and self.G.nodes[x]['c'] == 0, path[1])            
+        region = filter(lambda x: self.G.nodes[x]['r'] and self.G.nodes[x]['c'] == 0, path[1])
         choices = list(map(
             lambda x: (x, self.getRelationshipAndSystemScore(path[0], self.G.nodes[x]['user'])), region
-            ))
+        ))
 
-        def sortSecond(val): 
-            return val[1] 
-        
-        choices.sort(key = sortSecond, reverse = True)
+        def sortSecond(val):
+            return val[1]
+
+        choices.sort(key=sortSecond, reverse=True)
 
         if len(choices) != 0:
             pingLoc = choices[0][0]
@@ -221,23 +215,22 @@ class latticeSearch:
 
     def requestSearchFirstAvailable(self, path):
         """
-        ALG: greedy first encounter 
+        ALG: greedy first encounter
              (go for first cell in search region, regardless of count)
-        Hyp: too greedy, will rack up the search count in a lot of places that don't 
-             need it. 
+        Hyp: too greedy, will rack up the search count in a lot of places that don't
+             need it.
         """
 
         for n in path[1]:
             if self.G.nodes[n]['r'] and self.G.nodes[n]['c'] == 0:
                 self.G.nodes[n]['c'] += self.getRelationshipAndSystemScore(path[0], self.G.nodes[n]['user'])
-#                print "completing delivery at %s" % (n,)
+                #                print "completing delivery at %s" % (n,)
                 break  # only searching one block
-
 
     def requestSearchHitorWait(self, path, decisions):
         """
         ALG: Hit-or-Wait Decision Theoretic Alg to compute
-             best decision (to hit or wait) as a person walks 
+             best decision (to hit or wait) as a person walks
              through the region
         Hyp: this is the correct decision-theoretic solution
         """
@@ -255,62 +248,57 @@ class latticeSearch:
                 # print(".. at index %s and decision point %s" % (index, maxTime-index))
 
                 break
-    
+
     def getLowestActiveCount(self):
         region = filter(lambda x: self.G.nodes[x]['r'], self.G.nodes)
         return self.lowestCountInRegion(region)
-        
+
     def lowestCountInRegion(self, region):
         return min(map(lambda x: self.G.nodes[x]['c'], region))
 
     def median(self, lst):
         return np.median(np.array(lst))
 
-
     def getMedianActiveCount(self):
         region = filter(lambda x: self.G.nodes[x]['r'], self.G.nodes)
         return self.median(map(lambda x: self.G.nodes[x]['c'], region))
 
-##################### END SEARCH STRATEGIES ########################
+    ##################### END SEARCH STRATEGIES ########################
 
+    ################### SETUP FUNCTIONS ###################################
 
-
-
-################### SETUP FUNCTIONS ###################################
-    
     def addDeliveryRegion(self, user, x, y):
         self.G.nodes[(x, y)]['user'] = user
-        self.G.nodes[(x,y)]['r'] = True
+        self.G.nodes[(x, y)]['r'] = True
 
     def addSearchRegionDown(self, c):
         for r in range(0, self.w):
-            self.G.nodes[(r,c)]['r'] = True
+            self.G.nodes[(r, c)]['r'] = True
 
-
-##################### PRINTING FUNCTIONS ###########################
+    ##################### PRINTING FUNCTIONS ###########################
     def printAllPathCount(self):
         counts = {}
         for x in range(0, self.h):
             for y in range(0, self.w):
-                counts[(x,y)] = 0
+                counts[(x, y)] = 0
         for p in self.searchPaths:
             for loc in p[1]:
                 counts[loc] += 1
-                
+
         for x in range(0, self.h):
             for y in range(0, self.w):
-                print(counts[(x,y)], end="\t"),
+                print(counts[(x, y)], end="\t"),
             print('\n')
         print('\n')
-        
+
     def printSearcherPath(self, index):
         path = self.searchPaths[index][1]
         for x in range(0, self.h):
             for y in range(0, self.w):
-                if (x,y) in path:
+                if (x, y) in path:
                     print('w', end="\t"),
-                elif self.G.nodes[(x,y)]['r']:
-                    print(self.G.nodes[(x,y)]['user'], end="\t"),
+                elif self.G.nodes[(x, y)]['r']:
+                    print(self.G.nodes[(x, y)]['user'], end="\t"),
                 else:
                     print('-', end="\t"),
             print('\n')
@@ -319,20 +307,20 @@ class latticeSearch:
     def printLostItem(self):
         for x in range(0, self.h):
             for y in range(0, self.w):
-                if self.G.nodes[(x,y)]['r']:
-                    print(self.G.nodes[(x,y)]['user'], end="\t"),
+                if self.G.nodes[(x, y)]['r']:
+                    print(self.G.nodes[(x, y)]['user'], end="\t"),
                 else:
                     print('-', end="\t"),
             print('\n')
         print('\n')
-    
+
     def printSearchProgress(self):
         for x in range(0, self.h):
             for y in range(0, self.w):
-                if self.G.nodes[(x,y)]['c'] != 0:
-                    print(round(self.G.nodes[(x,y)]['c'], 2), end="\t"),
-                elif self.G.nodes[(x,y)]['r']:
-                    print(self.G.nodes[(x,y)]['user'], end="\t"),
+                if self.G.nodes[(x, y)]['c'] != 0:
+                    print(round(self.G.nodes[(x, y)]['c'], 2), end="\t"),
+                elif self.G.nodes[(x, y)]['r']:
+                    print(self.G.nodes[(x, y)]['user'], end="\t"),
                 else:
                     print('-', end="\t"),
             print('\n')

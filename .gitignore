@@ -2,3 +2,4 @@
 .vscode/*
 lattice.pyc
 __pycache__/*
+venv/*

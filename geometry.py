@@ -10,6 +10,7 @@ print(poly.distance(Point(0, 3)))
 with open("buildings.json") as data:
     buildingsJson = json.load(data)
 
+
 def createPolygonObjectFromBuilding(building):
     result = {}
     result["name"] = building["name"]
@@ -24,31 +25,44 @@ def createPolygonFromPoints(points):
 
 polygons = list(map(createPolygonObjectFromBuilding, buildingsJson))
 
-mudd = Point(42.058283, -87.674422)
-polyFound = 0
+left_top = [42.063650, -87.692412]
+right_top = [42.063650, -87.667343]
+right_bottom = [42.040201, -87.667343]
+left_bottom = [42.040201, -87.692412]
 
-for poly in polygons:
-    if poly["polygon"].contains(mudd):
-        polyFound = poly
+boundary = Polygon([left_top, left_bottom, right_bottom, right_top])
 
-assert(polyFound != 0 and "Mudd" in polyFound["name"])
+evanstonBuildings = list(filter(lambda x: boundary.contains(x["polygon"]), polygons))
 
-nearTech = Point(42.052130, -87.689330)
-polyFound = 0
-closestPoly = 0
-tempDist = sys.maxsize
+print(len(polygons))
+print(len(evanstonBuildings))
 
-for poly in polygons:
-    if poly["polygon"].contains(nearTech):
-        polyFound = poly
-    else:
-        currDist = poly["polygon"].distance(nearTech)
-        if currDist < tempDist:
-            tempDist = currDist
-            closestPoly = poly
 
-print(polyFound)
-print(closestPoly)
+# mudd = Point(42.058283, -87.674422)
+# polyFound = 0
+#
+# for poly in polygons:
+#     if poly["polygon"].contains(mudd):
+#         polyFound = poly
+#
+# assert(polyFound != 0 and "Mudd" in polyFound["name"])
+#
+# nearTech = Point(42.052130, -87.689330)
+# polyFound = 0
+# closestPoly = 0
+# tempDist = sys.maxsize
+#
+# for poly in polygons:
+#     if poly["polygon"].contains(nearTech):
+#         polyFound = poly
+#     else:
+#         currDist = poly["polygon"].distance(nearTech)
+#         if currDist < tempDist:
+#             tempDist = currDist
+#             closestPoly = poly
+#
+# print(polyFound)
+# print(closestPoly)
 
 # finding adjacent buildings
 # - dividing imto voronoi diagram of polygons (finding medial axis)
