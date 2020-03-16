@@ -16,4 +16,4 @@ left_bottom = [42.040201, -87.692412]
 
 bounds = [left_top, left_bottom, right_bottom, right_top]
 
-outer_polygons = create_medial_axis_as_outer_polygons(evanston_polygons[0:20], bounds)
+outer_polygons = create_medial_axis_as_outer_polygons(evanston_polygons[17:20], bounds)

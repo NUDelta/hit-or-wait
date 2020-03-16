@@ -32,4 +32,3 @@ def filter_in_evanston(polygons):
     )
 
     return evanstonBuildings
-
