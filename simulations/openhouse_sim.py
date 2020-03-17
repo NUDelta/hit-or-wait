@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from simulations.openhouse_lattice import latticeSearch
+from openhouse_lattice import latticeSearch
 
 
 # Hit-or-wait

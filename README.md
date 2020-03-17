@@ -20,7 +20,8 @@ python run.py
 
 Run simulation I used for Open House. A proof-of-concept of hit-or-wait for social benefit:
 ```
-python simulations/openhouse_sim.py
+cd simulations
+python openhouse_sim.py
 ```
 
 Run simulation HQ/YK made, showing value of hit-or-wait compared to other algos

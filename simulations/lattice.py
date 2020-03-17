@@ -25,16 +25,16 @@ class latticeSearch:
 
         for x in range(0, h):
             for y in range(0, w):
-                self.G.node[(x,y)]['v'] = False  # not visited
-                self.G.node[(x,y)]['r'] = False  # region to search
-                self.G.node[(x,y)]['c'] = 0      # search value
-                self.G.node[(x, y)]['user'] = None
+                self.G.nodes[(x,y)]['v'] = False  # not visited
+                self.G.nodes[(x,y)]['r'] = False  # region to search
+                self.G.nodes[(x,y)]['c'] = 0      # search value
+                self.G.nodes[(x, y)]['user'] = None
 
 
 ################# MODEL MOVEMENT ###########################
     def addSearcherPath(self, user, inputPath):
         self.searchPaths.append((user, inputPath))
-        return path
+        return inputPath
         
     def addSearcherPathsRandom(self, numPaths, users, start, end):
         for i in range(numPaths):
@@ -71,7 +71,7 @@ class latticeSearch:
             paths = startDict[startLocation]
 
             tallyNexts[startLocation] = {}
-            for n in self.G.node:
+            for n in self.G.nodes:
                 tallyNexts[startLocation][n] = {}
                 for next in self.G[n]:
                     tallyNexts[startLocation][n][next] = 0
@@ -95,21 +95,21 @@ class latticeSearch:
     
 ################# SEARCHING UTILS ########################
     def clearSearchProgress(self):
-        for n in self.G.node:
-            self.G.node[n]['c'] = 0
+        for n in self.G.nodes:
+            self.G.nodes[n]['c'] = 0
         self.itemFoundCount = 0
 
     def getTotalSearchCount(self):
-        return reduce(lambda x,y: x+y, map(lambda x: self.G.node[x]['c'] > 0, self.G.node))
+        return reduce(lambda x,y: x+y, map(lambda x: self.G.nodes[x]['c'] > 0, self.G.nodes))
 
     def computeSearchValue(self, weighCounts):
 
         """ using counts, deduce the value of the search conducted thus far """
         value = 0
-        for n in self.G.node:
-            if self.G.node[n]['c'] > 0 and self.G.node[n]['r']:
-                # value += weighCounts(self.G.node[n]['c'])
-                value += self.G.node[n]['c']
+        for n in self.G.nodes:
+            if self.G.nodes[n]['c'] > 0 and self.G.nodes[n]['r']:
+                # value += weighCounts(self.G.nodes[n]['c'])
+                value += self.G.nodes[n]['c']
         return value
 
     def expDecaySum(self, num):
@@ -142,10 +142,10 @@ class latticeSearch:
             knownValues.append({})
             knownDecisions.append({})
 
-        for n in self.G.node:
-            requester = self.G.node[n]['user']
-            if self.G.node[n]['r'] and self.G.node[n]['c'] == 0:
-                # knownValues[0][n] = self.expDecay(self.G.node[n]['c'])
+        for n in self.G.nodes:
+            requester = self.G.nodes[n]['user']
+            if self.G.nodes[n]['r'] and self.G.nodes[n]['c'] == 0:
+                # knownValues[0][n] = self.expDecay(self.G.nodes[n]['c'])
                 knownValues[0][n] = self.getRelationshipAndSystemScore(helper, requester)
                 knownDecisions[0][n] = "Hit"
             else:
@@ -154,11 +154,11 @@ class latticeSearch:
 
         # 
         for t in range(1, maxTime):
-            for n in self.G.node:
-                requester = self.G.node[n]['user']
+            for n in self.G.nodes:
+                requester = self.G.nodes[n]['user']
                 # base value is if stop right now
-                if self.G.node[n]['r'] and self.G.node[n]['c'] == 0:
-                    # knownValues[t][n] = self.expDecay(self.G.node[n]['c'])
+                if self.G.nodes[n]['r'] and self.G.nodes[n]['c'] == 0:
+                    # knownValues[t][n] = self.expDecay(self.G.nodes[n]['c'])
                     knownValues[t][n] = self.getRelationshipAndSystemScore(helper, requester)
                     knownDecisions[t][n] = "Hit"
                 else:
@@ -191,9 +191,9 @@ class latticeSearch:
         """ 
         ALG: omniscient of ind. paths; ping in location of current lowest count
         """
-        region = filter(lambda x: self.G.node[x]['r'] and self.G.node[x]['c'] == 0, path[1])            
+        region = filter(lambda x: self.G.nodes[x]['r'] and self.G.nodes[x]['c'] == 0, path[1])            
         choices = list(map(
-            lambda x: (x, self.getRelationshipAndSystemScore(path[0], self.G.node[x]['user'])), region
+            lambda x: (x, self.getRelationshipAndSystemScore(path[0], self.G.nodes[x]['user'])), region
             ))
 
         def sortSecond(val): 
@@ -203,7 +203,7 @@ class latticeSearch:
 
         if len(choices) != 0:
             pingLoc = choices[0][0]
-            self.G.node[pingLoc]['c'] = choices[0][1]
+            self.G.nodes[pingLoc]['c'] = choices[0][1]
 
     def requestSearchFirstAvailable(self, path):
         """
@@ -214,8 +214,8 @@ class latticeSearch:
         """
 
         for n in path[1]:
-            if self.G.node[n]['r'] and self.G.node[n]['c'] == 0:
-                self.G.node[n]['c'] += self.getRelationshipAndSystemScore(path[0], self.G.node[n]['user'])
+            if self.G.nodes[n]['r'] and self.G.nodes[n]['c'] == 0:
+                self.G.nodes[n]['c'] += self.getRelationshipAndSystemScore(path[0], self.G.nodes[n]['user'])
 #                print "completing delivery at %s" % (n,)
                 break  # only searching one block
 
@@ -233,27 +233,27 @@ class latticeSearch:
         for (index, n) in enumerate(path[1]):
             if index >= maxTime:
                 break
-            if self.G.node[n]['r'] and decisions[path[0]]['decisions'][maxTime - index - 1][n] == "Hit":
-                self.G.node[n]['c'] += decisions[path[0]]['values'][maxTime - index - 1][n]
+            if self.G.nodes[n]['r'] and decisions[path[0]]['decisions'][maxTime - index - 1][n] == "Hit":
+                self.G.nodes[n]['c'] += decisions[path[0]]['values'][maxTime - index - 1][n]
                 print("completing delivery at %s" % (n,))
                 print(".. at index %s and decision point %s" % (index, maxTime-index))
 
                 break
     
     def getLowestActiveCount(self):
-        region = filter(lambda x: self.G.node[x]['r'], self.G.node)
+        region = filter(lambda x: self.G.nodes[x]['r'], self.G.nodes)
         return self.lowestCountInRegion(region)
         
     def lowestCountInRegion(self, region):
-        return min(map(lambda x: self.G.node[x]['c'], region))
+        return min(map(lambda x: self.G.nodes[x]['c'], region))
 
     def median(self, lst):
         return np.median(np.array(lst))
 
 
     def getMedianActiveCount(self):
-        region = filter(lambda x: self.G.node[x]['r'], self.G.node)
-        return self.median(map(lambda x: self.G.node[x]['c'], region))
+        region = filter(lambda x: self.G.nodes[x]['r'], self.G.nodes)
+        return self.median(map(lambda x: self.G.nodes[x]['c'], region))
 
 ##################### END SEARCH STRATEGIES ########################
 
@@ -263,12 +263,12 @@ class latticeSearch:
 ################### SETUP FUNCTIONS ###################################
     
     def addDeliveryRegion(self, user, x, y):
-        self.G.node[(x, y)]['user'] = user
-        self.G.node[(x,y)]['r'] = True
+        self.G.nodes[(x, y)]['user'] = user
+        self.G.nodes[(x,y)]['r'] = True
 
     def addSearchRegionDown(self, c):
         for r in range(0, self.w):
-            self.G.node[(r,c)]['r'] = True
+            self.G.nodes[(r,c)]['r'] = True
 
 
 ##################### PRINTING FUNCTIONS ###########################
@@ -293,7 +293,7 @@ class latticeSearch:
             for y in range(0, self.w):
                 if (x,y) in path:
                     print('w', end=" "),
-                elif self.G.node[(x,y)]['r']:
+                elif self.G.nodes[(x,y)]['r']:
                     print('r', end=" "),
                 else:
                     print('-', end=" "),
@@ -303,7 +303,7 @@ class latticeSearch:
     def printLostItem(self):
         for x in range(0, self.h):
             for y in range(0, self.w):
-                if self.G.node[(x,y)]['r']:
+                if self.G.nodes[(x,y)]['r']:
                     print('r', end=" "),
                 else:
                     print('-', end=" "),
@@ -313,9 +313,9 @@ class latticeSearch:
     def printSearchProgress(self):
         for x in range(0, self.h):
             for y in range(0, self.w):
-                if self.G.node[(x,y)]['c'] != 0:
-                    print(round(self.G.node[(x,y)]['c'], 2), end=" "),
-                elif self.G.node[(x,y)]['r']:
+                if self.G.nodes[(x,y)]['c'] != 0:
+                    print(round(self.G.nodes[(x,y)]['c'], 2), end=" "),
+                elif self.G.nodes[(x,y)]['r']:
                     print('r', end=" "),
                 else:
                     print('-', end=" "),
