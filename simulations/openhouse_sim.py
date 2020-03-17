@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-from openhouseLattice import latticeSearch, users
+from simulations.openhouse_lattice import latticeSearch
+
 
 # Hit-or-wait
 def runHitOrWait():

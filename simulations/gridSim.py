@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from lattice import latticeSearch, users
+from simulations.lattice import latticeSearch
 
 ex = latticeSearch(10, 10, 20)    # create a lattice for searching
 for index, user in enumerate(list(ex.users.G.nodes())[:10]):

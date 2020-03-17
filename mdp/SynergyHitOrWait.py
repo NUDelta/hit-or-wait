@@ -44,6 +44,9 @@ class SynergyHitOrWait:
         return self.relationships[relationship_id]["friendship"]*0.9 + 0.1
 
     def assign_tasks(self, tasks):
+        #TODO: deal with multiple tasks in one location
+        #TODO: deal with adding task to multiple states based on notification radius
+
         for key, _ in tasks.items():
             loc = tasks[key]["location"]
             state = self.get_state(loc["lat"], loc["lng"])
